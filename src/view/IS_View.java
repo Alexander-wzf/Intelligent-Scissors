@@ -9,10 +9,12 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 
 public class IS_View extends JFrame {
-    private JLabel imageLabel;
     private JButton openButton;
+    private JPanel imageShowPanel;
     private File currentImageFile;
     private BufferedImage originalImage;
+    private BufferedImage scaledImage;
+    private Point imageLocation = new Point(0,0);
 
     public IS_View() {
         setTitle("图片查看器");
@@ -21,12 +23,19 @@ public class IS_View extends JFrame {
         setLocationRelativeTo(null);
 
         // 创建组件
-        imageLabel = new JLabel("", JLabel.CENTER);
         openButton = new JButton("打开图片");
+        imageShowPanel = new JPanel(){
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                middle();
+                g.drawImage(scaledImage, imageLocation.x, imageLocation.y,null);
+            }
+        };
 
         // 设置布局
         setLayout(new BorderLayout());
-        add(imageLabel, BorderLayout.CENTER);
+        add(imageShowPanel, BorderLayout.CENTER);
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(openButton);
@@ -61,6 +70,7 @@ public class IS_View extends JFrame {
             try {
                 originalImage = ImageIO.read(currentImageFile);
                 resizeImage();
+                repaint();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "无法打开图片: " + ex.getMessage(),
                         "错误", JOptionPane.ERROR_MESSAGE);
@@ -70,10 +80,9 @@ public class IS_View extends JFrame {
 
     private void resizeImage() {
         if (originalImage == null) return;
-
         // 获取容器大小
-        int containerWidth = imageLabel.getWidth();
-        int containerHeight = imageLabel.getHeight();
+        int containerWidth = imageShowPanel.getWidth();
+        int containerHeight = imageShowPanel.getHeight();
 
         if (containerWidth <= 0 || containerHeight <= 0) return;
 
@@ -93,7 +102,17 @@ public class IS_View extends JFrame {
         }
 
         // 缩放图片
-        Image scaledImage = originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
-        imageLabel.setIcon(new ImageIcon(scaledImage));
+        Image tempImage = originalImage.getScaledInstance(newWidth, newHeight, Image.SCALE_SMOOTH);
+        scaledImage = new BufferedImage(newWidth,newHeight,BufferedImage.TYPE_INT_RGB);
+        Graphics g = scaledImage .createGraphics();
+        g.drawImage(tempImage, 0, 0, null);
+        g.dispose();
+    }
+
+    private void middle(){
+        if (scaledImage != null){
+            int y = (imageShowPanel.getHeight() - scaledImage.getHeight()) / 2;
+            imageLocation.setLocation(0,y);
+        }
     }
 }
