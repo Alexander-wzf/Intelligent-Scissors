@@ -20,6 +20,7 @@ public class IS_View extends JFrame {
     private Point currentPoint;              // 当前鼠标位置
 
     public IS_View() {
+        // 设置frame
         setTitle("Intelligent Scissors");
         setSize(1000, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -28,8 +29,8 @@ public class IS_View extends JFrame {
         // 创建组件
         openButton = new JButton("打开图片");
         imageShowPanel = new JPanel(){
-            @Override
-            protected void paintComponent(Graphics g) { // 重写repaint方法
+            @Override // 重写repaint方法
+            protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 if (scaledImage != null){
                     middle();
@@ -38,6 +39,9 @@ public class IS_View extends JFrame {
                 if (seedPoint != null){
                     g.setColor(Color.RED);
                     g.fillOval(seedPoint.x - 5, seedPoint.y - 5, 10, 10);
+                }
+                if (currentPoint != null){
+                    drawPath(g);
                 }
             }
         };
@@ -58,8 +62,8 @@ public class IS_View extends JFrame {
             @Override
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
-                if (scaledImage != null && isInImage(e.getPoint())) {
-                    seedPoint = new Point(e.getX(), e.getY());
+                if (scaledImage != null && isInImage(e.getPoint())) { // 无图像或不在图像内时，不要seedPoint
+                    seedPoint = e.getPoint();
                     repaint();
                 }
             }
@@ -68,9 +72,10 @@ public class IS_View extends JFrame {
             @Override
             public void mouseMoved(MouseEvent e) {
                 super.mouseMoved(e);
-                if (scaledImage != null) {
-                    if (isInImage(e.getPoint())) {
-                        currentPoint = new Point(e.getX(), e.getY());
+                if (scaledImage != null && seedPoint != null) { // 在无图像且无seedPoint时不需要currentPoint
+                    if (isInImage(e.getPoint())) {              // 在图像内才要currentPoint
+                        currentPoint = e.getPoint();
+                        repaint();
                     } else
                         System.out.println("在图像区域外");
                 }
@@ -149,6 +154,11 @@ public class IS_View extends JFrame {
         return point.x >= imageLocation.x && point.x <= imageLocation.x + scaledImage.getWidth()
                 && point.y >= imageLocation.y && point.y <= imageLocation.y + scaledImage.getHeight();
     }
+
+    private void drawPath(Graphics g){
+        g.drawLine(seedPoint.x,seedPoint.y,currentPoint.x,currentPoint.y);
+    }
+    // ================ Getter and Setter =================
     public BufferedImage getScaledImage() {
         return scaledImage;
     }
