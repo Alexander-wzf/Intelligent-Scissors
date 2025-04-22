@@ -1,24 +1,27 @@
 package view;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.File;
-import javax.imageio.ImageIO;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.image.BufferedImage;
+import java.io.File;
 
 public class IS_View extends JFrame {
-    private JButton openButton;
-    private JPanel imageShowPanel;
-    private File currentImageFile;
-    private BufferedImage originalImage;
-    private BufferedImage scaledImage;
-    private Point imageLocation = new Point(0,0);
+    private JButton openButton;              // 图像选择按钮
+    private JPanel imageShowPanel;           // 图像展示面板
+    private File currentImageFile;           // 读取的文件
+    private BufferedImage originalImage;     // 原图像
+    private BufferedImage scaledImage;       // 缩放后的图像以适应窗口
+    private Point imageLocation = new Point(0,0);             // 图像的位置
+    private Point seedPoint;                 // 路径寻找初始位置
+    private Point currentPoint;              // 当前鼠标位置
 
     public IS_View() {
-        setTitle("图片查看器");
-        setSize(800, 600);
+        setTitle("Intelligent Scissors");
+        setSize(1000, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -26,10 +29,16 @@ public class IS_View extends JFrame {
         openButton = new JButton("打开图片");
         imageShowPanel = new JPanel(){
             @Override
-            protected void paintComponent(Graphics g) {
+            protected void paintComponent(Graphics g) { // 重写repaint方法
                 super.paintComponent(g);
-                middle();
-                g.drawImage(scaledImage, imageLocation.x, imageLocation.y,null);
+                if (scaledImage != null){
+                    middle();
+                    g.drawImage(scaledImage, imageLocation.x, imageLocation.y,null);
+                }
+                if (seedPoint != null){
+                    g.setColor(Color.RED);
+                    g.fillOval(seedPoint.x - 5, seedPoint.y - 5, 10, 10);
+                }
             }
         };
 
@@ -42,21 +51,40 @@ public class IS_View extends JFrame {
         add(buttonPanel, BorderLayout.SOUTH);
 
         // 添加事件监听器
-        openButton.addActionListener(new ActionListener() {
+        openButton.addActionListener(e -> openImage());
+
+        // 添加鼠标监听器
+        imageShowPanel.addMouseListener(new MouseAdapter() {
             @Override
-            public void actionPerformed(ActionEvent e) {
-                openImage();
+            public void mouseClicked(MouseEvent e) {
+                super.mouseClicked(e);
+                if (scaledImage != null && isInImage(e.getPoint())) {
+                    seedPoint = new Point(e.getX(), e.getY());
+                    repaint();
+                }
+            }
+        });
+        imageShowPanel.addMouseMotionListener(new MouseMotionAdapter() {
+            @Override
+            public void mouseMoved(MouseEvent e) {
+                super.mouseMoved(e);
+                if (scaledImage != null) {
+                    if (isInImage(e.getPoint())) {
+                        currentPoint = new Point(e.getX(), e.getY());
+                    } else
+                        System.out.println("在图像区域外");
+                }
             }
         });
 
         // 添加组件大小变化监听器
-        addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentResized(java.awt.event.ComponentEvent evt) {
-                if (originalImage != null) {
-                    resizeImage();
-                }
-            }
-        });
+//        addComponentListener(new java.awt.event.ComponentAdapter() {
+//            public void componentResized(java.awt.event.ComponentEvent evt) {
+//                if (originalImage != null) {
+//                    resizeImage();
+//                }
+//            }
+//        });
     }
 
     private void openImage() {
@@ -70,7 +98,6 @@ public class IS_View extends JFrame {
             try {
                 originalImage = ImageIO.read(currentImageFile);
                 resizeImage();
-                repaint();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "无法打开图片: " + ex.getMessage(),
                         "错误", JOptionPane.ERROR_MESSAGE);
@@ -107,12 +134,22 @@ public class IS_View extends JFrame {
         Graphics g = scaledImage .createGraphics();
         g.drawImage(tempImage, 0, 0, null);
         g.dispose();
+        repaint();
     }
 
     private void middle(){
         if (scaledImage != null){
+            int x = (imageShowPanel.getWidth() - scaledImage.getWidth()) / 2;
             int y = (imageShowPanel.getHeight() - scaledImage.getHeight()) / 2;
-            imageLocation.setLocation(0,y);
+            imageLocation.setLocation(x,y);
         }
+    }
+
+    private boolean isInImage(Point point){
+        return point.x >= imageLocation.x && point.x <= imageLocation.x + scaledImage.getWidth()
+                && point.y >= imageLocation.y && point.y <= imageLocation.y + scaledImage.getHeight();
+    }
+    public BufferedImage getScaledImage() {
+        return scaledImage;
     }
 }
