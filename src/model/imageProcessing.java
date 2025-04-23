@@ -12,7 +12,7 @@ public class imageProcessing {
      * @param image
      * @return 灰度矩阵
      */
-    private static int[][] image2gray(BufferedImage image){
+    public static int[][] image2gray(BufferedImage image){
         int width = image.getWidth();
         int height = image.getHeight();
 
@@ -45,7 +45,7 @@ public class imageProcessing {
     }
 
     /**
-     * todo 用sobel算子算x方向梯度
+     * 用sobel算子算x方向梯度
      * @param grayMatrix
      * @return 梯度矩阵
      */
@@ -78,10 +78,10 @@ public class imageProcessing {
         return D;
     }
 
-    private static double[][] getIx(int[][] grayMatrix){
+    public static double[][] getIx(int[][] grayMatrix){
         return gradient(grayMatrix,sobelX);
     }
-    private static double[][] getIy(int[][] grayMatrix){
+    public static double[][] getIy(int[][] grayMatrix){
         return gradient(grayMatrix,sobelY);
     }
 
@@ -91,7 +91,7 @@ public class imageProcessing {
      * @param Iy
      * @return double[][] 梯度大小矩阵
      */
-    private static double[][] gradientMagnitude(double[][] Ix, double[][] Iy){
+    public static double[][] gradientMagnitude(double[][] Ix, double[][] Iy){
         int rows = Ix.length;
         int cols = Ix[0].length;
 
@@ -109,7 +109,7 @@ public class imageProcessing {
      * @param magnitude
      * @return 权重矩阵
      */
-    private static double[][] nodeWeights(double[][] magnitude){
+    public static double[][] nodeWeights(double[][] magnitude){
         double gMax = Max(magnitude);
         int rows = magnitude.length;
         int cols = magnitude[0].length;
