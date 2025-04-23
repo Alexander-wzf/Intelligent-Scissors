@@ -16,12 +16,17 @@ public class IS_Controller {
     public void start(){
         isView.setVisible(true);
 
-        Boolean running = true;
+        boolean running = true;
         while (running){
-            if (isView.getScaledImage() != null){
-                isModel.setImage(isView.getScaledImage());
-                System.out.println("got it");
-            }else System.out.println("no");
+            try {
+                if (isView.getScaledImage() != null){
+                    isModel.setImage(isView.getScaledImage());
+                }
+            }catch (Exception e){
+                running = false;
+                isView.showError();
+                System.out.println("错误" + e);
+            }
         }
     }
 }

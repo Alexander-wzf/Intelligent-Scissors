@@ -30,6 +30,21 @@ public class IS_View extends JFrame {
         setLocationRelativeTo(null);
 
         // 创建组件
+        createComponents();
+
+        // 设置布局
+        setLayout(new BorderLayout());
+        add(imageShowPanel, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(openButton);
+        add(buttonPanel, BorderLayout.SOUTH);
+
+        // 添加监听器
+        createListener();
+    }
+
+    private void createComponents(){
         openButton = new JButton("打开图片");
         imageShowPanel = new JPanel(){
             @Override // 重写repaint方法
@@ -48,15 +63,9 @@ public class IS_View extends JFrame {
                 }
             }
         };
+    }
 
-        // 设置布局
-        setLayout(new BorderLayout());
-        add(imageShowPanel, BorderLayout.CENTER);
-
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.add(openButton);
-        add(buttonPanel, BorderLayout.SOUTH);
-
+    private void createListener(){
         // 添加事件监听器
         openButton.addActionListener(e -> openImage());
 
@@ -162,6 +171,9 @@ public class IS_View extends JFrame {
         g.drawLine(seedPoint.x,seedPoint.y,currentPoint.x,currentPoint.y);
     }
 
+    public void showError(){
+        JOptionPane.showMessageDialog(this, "错误", "isController.start() 发生错误", JOptionPane.ERROR_MESSAGE);
+    }
     // ================ Getter and Setter =================
     public BufferedImage getScaledImage() {
         return scaledImage;
