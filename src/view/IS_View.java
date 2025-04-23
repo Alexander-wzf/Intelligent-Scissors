@@ -1,5 +1,7 @@
 package view;
 
+import controller.IS_Controller;
+
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
@@ -18,6 +20,7 @@ public class IS_View extends JFrame {
     private Point imageLocation = new Point(0,0);             // 图像的位置
     private Point seedPoint;                 // 路径寻找初始位置
     private Point currentPoint;              // 当前鼠标位置
+    private IS_Controller isController;
 
     public IS_View() {
         // 设置frame
@@ -158,6 +161,7 @@ public class IS_View extends JFrame {
     private void drawPath(Graphics g){
         g.drawLine(seedPoint.x,seedPoint.y,currentPoint.x,currentPoint.y);
     }
+
     // ================ Getter and Setter =================
     public BufferedImage getScaledImage() {
         return scaledImage;
