@@ -9,10 +9,10 @@ public class imageProcessing {
 
     /**
      * 将图像转为int值的灰度矩阵
-     * @param image
+     * @param image 待处理的图像
      * @return 灰度矩阵
      */
-    public static int[][] image2gray(BufferedImage image){
+    private static int[][] image2gray(BufferedImage image){
         int width = image.getWidth();
         int height = image.getHeight();
 
@@ -46,7 +46,7 @@ public class imageProcessing {
 
     /**
      * 用sobel算子算x方向梯度
-     * @param grayMatrix
+     * @param grayMatrix int[][]灰度矩阵
      * @return 梯度矩阵
      */
     private static double[][] gradient(int[][] grayMatrix, int[][] kernel){
@@ -78,20 +78,20 @@ public class imageProcessing {
         return D;
     }
 
-    public static double[][] getIx(int[][] grayMatrix){
+    private static double[][] getIx(int[][] grayMatrix){
         return gradient(grayMatrix,sobelX);
     }
-    public static double[][] getIy(int[][] grayMatrix){
+    private static double[][] getIy(int[][] grayMatrix){
         return gradient(grayMatrix,sobelY);
     }
 
     /**
      * 计算梯度大小
-     * @param Ix
-     * @param Iy
-     * @return double[][] 梯度大小矩阵
+     * @param Ix x方向梯度
+     * @param Iy y方向梯度
+     * @return double[][] 梯度大小矩阵 G = sqrt(Ix^2 + Iy^2)
      */
-    public static double[][] gradientMagnitude(double[][] Ix, double[][] Iy){
+    private static double[][] gradientMagnitude(double[][] Ix, double[][] Iy){
         int rows = Ix.length;
         int cols = Ix[0].length;
 
@@ -106,10 +106,10 @@ public class imageProcessing {
 
     /**
      * 计算节点权重
-     * @param magnitude
-     * @return 权重矩阵
+     * @param magnitude 图像梯度大小
+     * @return 权重矩阵 Weight = (G_max-G)/G_max
      */
-    public static double[][] nodeWeights(double[][] magnitude){
+    private static double[][] nodeWeights(double[][] magnitude){
         double gMax = Max(magnitude);
         int rows = magnitude.length;
         int cols = magnitude[0].length;
@@ -121,6 +121,23 @@ public class imageProcessing {
             }
         }
 
+        return magnitude;
+    }
+
+    /**
+     * 计算成本矩阵
+     * @param magnitude 图像梯度大小
+     * @return 成本矩阵
+     */
+    private static double[][] costMatrix(double[][] magnitude){
+        // todo 完成对成本矩阵的计算
+        int rows = magnitude.length;
+        int cols = magnitude[0].length;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                magnitude[i][j] = 1 / (1 + magnitude[i][j]);
+            }
+        }
         return magnitude;
     }
 
@@ -138,5 +155,15 @@ public class imageProcessing {
         }
 
         return max;
+    }
+
+    public static double[][] getC(BufferedImage image){
+        int[][] grayMatrix = new int[image.getHeight()][image.getWidth()];
+        return costMatrix(gradientMagnitude(getIx(grayMatrix),getIy(grayMatrix)));
+    }
+
+    public static double[][] getfG(BufferedImage image){
+        int[][] grayMatrix = new int[image.getHeight()][image.getWidth()];
+        return nodeWeights(gradientMagnitude(getIx(grayMatrix),getIy(grayMatrix)));
     }
 }
