@@ -22,6 +22,12 @@ public class IS_Controller {
                 if (isView.getScaledImage() != null){
                     isModel.setImage(isView.getScaledImage());
                 }
+                if (isView.getSeedPoint() != null){
+                    isModel.setSeedPoint(isView.getSeedPoint());
+                }
+                if (isView.getCurrentPoint() != null){
+                    isModel.setCurrentPoint(isView.getCurrentPoint());
+                }
             }catch (Exception e){
                 running = false;
                 isView.showError();

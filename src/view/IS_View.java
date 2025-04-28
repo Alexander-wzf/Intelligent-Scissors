@@ -178,4 +178,12 @@ public class IS_View extends JFrame {
     public BufferedImage getScaledImage() {
         return scaledImage;
     }
+
+    public Point getSeedPoint() {
+        return seedPoint;
+    }
+
+    public Point getCurrentPoint() {
+        return currentPoint;
+    }
 }
