@@ -142,8 +142,6 @@ public class imageProcessing {
     }
 
     private static double Max(double[][] matrix){
-        int rows = matrix.length;
-        int cols = matrix[0].length;
         double max = matrix[0][0];
 
         for (double[] doubles : matrix) {
@@ -158,12 +156,9 @@ public class imageProcessing {
     }
 
     public static double[][] getC(BufferedImage image){
-        int[][] grayMatrix = new int[image.getHeight()][image.getWidth()];
+        int[][] grayMatrix = image2gray(image);
         return costMatrix(gradientMagnitude(getIx(grayMatrix),getIy(grayMatrix)));
     }
 
-    public static double[][] getfG(BufferedImage image){
-        int[][] grayMatrix = new int[image.getHeight()][image.getWidth()];
-        return nodeWeights(gradientMagnitude(getIx(grayMatrix),getIy(grayMatrix)));
-    }
+
 }

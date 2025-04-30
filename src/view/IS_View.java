@@ -1,6 +1,6 @@
 package view;
 
-import controller.IS_Controller;
+import model.IS_Model;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
@@ -14,18 +14,19 @@ import java.io.File;
 public class IS_View extends JFrame {
     private JButton openButton;              // 图像选择按钮
     private JPanel imageShowPanel;           // 图像展示面板
-    private File currentImageFile;           // 读取的文件
+    File currentImageFile;           // 读取的文件
     private BufferedImage originalImage;     // 原图像
     private BufferedImage scaledImage;       // 缩放后的图像以适应窗口
-    private Point imageLocation = new Point(0,0);             // 图像的位置
+    Point imageLocation = new Point(0,0);             // 图像的位置
     private Point seedPoint;                 // 路径寻找初始位置
     private Point currentPoint;              // 当前鼠标位置
-    private IS_Controller isController;
+    Point[][] parentPoint;
+    IS_Model isModel;
 
     public IS_View() {
         // 设置frame
         setTitle("Intelligent Scissors");
-        setSize(1000, 700);
+        setSize(800, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -58,7 +59,7 @@ public class IS_View extends JFrame {
                     g.setColor(Color.RED);
                     g.fillOval(seedPoint.x - 5, seedPoint.y - 5, 10, 10);
                 }
-                if (currentPoint != null){
+                if (parentPoint != null && currentPoint != null && seedPoint != null){
                     drawPath(g);
                 }
             }
@@ -76,6 +77,7 @@ public class IS_View extends JFrame {
                 super.mouseClicked(e);
                 if (scaledImage != null && isInImage(e.getPoint())) { // 无图像或不在图像内时，不要seedPoint
                     seedPoint = e.getPoint();
+                    setParentPoint(isModel.getParentPoint());
                     repaint();
                 }
             }
@@ -94,14 +96,16 @@ public class IS_View extends JFrame {
             }
         });
 
-        // 添加组件大小变化监听器
-//        addComponentListener(new java.awt.event.ComponentAdapter() {
-//            public void componentResized(java.awt.event.ComponentEvent evt) {
-//                if (originalImage != null) {
-//                    resizeImage();
-//                }
-//            }
-//        });
+        /*
+ 添加组件大小变化监听器
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                if (originalImage != null) {
+                    resizeImage();
+                }
+            }
+        });
+*/
     }
 
     private void openImage() {
@@ -168,22 +172,40 @@ public class IS_View extends JFrame {
     }
 
     private void drawPath(Graphics g){
-        g.drawLine(seedPoint.x,seedPoint.y,currentPoint.x,currentPoint.y);
+
+        g.setColor(Color.orange);
+
+        int x = currentPoint.x - imageLocation.x;
+        int y = currentPoint.y - imageLocation.y;
+
+        while (x != seedPoint.x - imageLocation.x || y != seedPoint.y - imageLocation.y){
+            int px = parentPoint[y][x].x;
+            int py = parentPoint[y][x].y;
+
+            g.drawLine(x + imageLocation.x,y + imageLocation.y,px + imageLocation.x,py + imageLocation.y);
+            x = px;
+            y = py;
+        }
     }
 
-    public void showError(){
-        JOptionPane.showMessageDialog(this, "错误", "isController.start() 发生错误", JOptionPane.ERROR_MESSAGE);
-    }
     // ================ Getter and Setter =================
     public BufferedImage getScaledImage() {
         return scaledImage;
     }
 
+    // 这个seedPoint是在整个panel上的坐标，要换成在图像上的坐标
     public Point getSeedPoint() {
-        return seedPoint;
+        Point spInImage = new Point();
+        spInImage.x = seedPoint.x - imageLocation.x;
+        spInImage.y = seedPoint.y - imageLocation.y;
+        return spInImage;
     }
 
-    public Point getCurrentPoint() {
-        return currentPoint;
+    public void setParentPoint(Point[][] parentPoint) {
+        this.parentPoint = parentPoint;
+    }
+
+    public void setIsModel(IS_Model isModel) {
+        this.isModel = isModel;
     }
 }
