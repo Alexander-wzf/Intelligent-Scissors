@@ -65,15 +65,13 @@ public class IS_Model {
                 int nx = x + dx[i];
                 int ny = y + dy[i];
 
-                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows){
-                    if (!visited[ny][nx]){
-                        double currentDist = currentNode.dist + cost[ny][nx] * directionCost[i];
+                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !visited[ny][nx]){
+                    double currentDist = currentNode.dist + cost[ny][nx] * directionCost[i];
 
-                        if (currentDist < dist[ny][nx]){
-                            dist[ny][nx] = currentDist;
-                            parentPoint[ny][nx] = new Point(x,y);
-                            pq.offer(new node(new Point(nx, ny), currentDist));
-                        }
+                    if (currentDist < dist[ny][nx]){
+                        dist[ny][nx] = currentDist;
+                        parentPoint[ny][nx] = new Point(x,y);
+                        pq.offer(new node(new Point(nx, ny), currentDist));
                     }
                 }
             }

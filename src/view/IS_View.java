@@ -1,5 +1,6 @@
 package view;
 
+import edu.princeton.cs.algs4.Queue;
 import model.IS_Model;
 
 import javax.imageio.ImageIO;
@@ -14,14 +15,15 @@ import java.io.File;
 public class IS_View extends JFrame {
     private JButton openButton;              // 图像选择按钮
     private JPanel imageShowPanel;           // 图像展示面板
-    File currentImageFile;           // 读取的文件
+    File currentImageFile;                   // 读取的文件
     private BufferedImage originalImage;     // 原图像
     private BufferedImage scaledImage;       // 缩放后的图像以适应窗口
-    Point imageLocation = new Point(0,0);             // 图像的位置
+    Point imageLocation = new Point(0,0);     // 图像的位置
     private Point seedPoint;                 // 路径寻找初始位置
     private Point currentPoint;              // 当前鼠标位置
-    Point[][] parentPoint;
+    Point[][] parentPoint;                   // 父亲点：dijkstra算法中的指向
     IS_Model isModel;
+    Queue<Point> savedPoint;                 // 保存已经绘制的节点
 
     public IS_View() {
         // 设置frame
@@ -43,6 +45,12 @@ public class IS_View extends JFrame {
 
         // 添加监听器
         createListener();
+
+        // 输出窗口信息
+        setVisible(true);
+        System.out.println("窗口大小："+getWidth()+"*"+getHeight());
+        System.out.println("图片层大小："+imageShowPanel.getWidth()+"*"+imageShowPanel.getHeight());
+        System.out.println("按钮层大小："+buttonPanel.getWidth()+"*"+buttonPanel.getHeight());
     }
 
     private void createComponents(){
@@ -155,6 +163,9 @@ public class IS_View extends JFrame {
         Graphics g = scaledImage .createGraphics();
         g.drawImage(tempImage, 0, 0, null);
         g.dispose();
+
+        System.out.println("缩放后图片大小："+scaledImage.getWidth()+"*"+scaledImage.getHeight());
+
         repaint();
     }
 
@@ -172,7 +183,8 @@ public class IS_View extends JFrame {
     }
 
     private void drawPath(Graphics g){
-
+        // 先画出已保存的路线 todo
+        // 再画出新的路线
         g.setColor(Color.orange);
 
         int x = currentPoint.x - imageLocation.x;
@@ -189,6 +201,7 @@ public class IS_View extends JFrame {
     }
 
     // ================ Getter and Setter =================
+
     public BufferedImage getScaledImage() {
         return scaledImage;
     }
