@@ -48,6 +48,7 @@ public class IS_View extends JFrame {
 
         // 输出窗口信息
         setVisible(true);
+        setResizable(false);
         System.out.println("窗口大小："+getWidth()+"*"+getHeight());
         System.out.println("图片层大小："+imageShowPanel.getWidth()+"*"+imageShowPanel.getHeight());
         System.out.println("按钮层大小："+buttonPanel.getWidth()+"*"+buttonPanel.getHeight());
@@ -61,7 +62,8 @@ public class IS_View extends JFrame {
                 super.paintComponent(g);
                 if (scaledImage != null){
                     middle();
-                    g.drawImage(scaledImage, imageLocation.x, imageLocation.y,null);
+                    g.drawImage(scaledImage, imageLocation.x, imageLocation.y,this);
+                    openButton.setText("换一张图片");
                 }
                 if (seedPoint != null){
                     g.setColor(Color.RED);
@@ -76,7 +78,11 @@ public class IS_View extends JFrame {
 
     private void createListener(){
         // 添加事件监听器
-        openButton.addActionListener(e -> openImage());
+        openButton.addActionListener(e -> {
+            seedPoint = null;
+            currentPoint = null;
+            openImage();
+        });
 
         // 添加鼠标监听器
         imageShowPanel.addMouseListener(new MouseAdapter() {
@@ -87,7 +93,7 @@ public class IS_View extends JFrame {
                     seedPoint = e.getPoint();
                     setParentPoint(isModel.getParentPoint());
                     repaint();
-                }
+                } else System.out.println("不在图像区域内");
             }
         });
         imageShowPanel.addMouseMotionListener(new MouseMotionAdapter() {
@@ -164,7 +170,8 @@ public class IS_View extends JFrame {
         g.drawImage(tempImage, 0, 0, null);
         g.dispose();
 
-        System.out.println("缩放后图片大小："+scaledImage.getWidth()+"*"+scaledImage.getHeight());
+        System.out.println("原始图片大小："+originalImage.getWidth()+"*"+originalImage.getHeight());
+        System.out.println("缩放后图片大小："+scaledImage.getWidth()+"*"+scaledImage.getHeight()+"\n");
 
         repaint();
     }
@@ -184,6 +191,7 @@ public class IS_View extends JFrame {
 
     private void drawPath(Graphics g){
         // 先画出已保存的路线 todo
+
         // 再画出新的路线
         g.setColor(Color.orange);
 
@@ -192,6 +200,7 @@ public class IS_View extends JFrame {
 //        System.out.println("currentX="+currentPoint.x+" currentY="+currentPoint.y
 //                +"\n"+"imageX  ="+imageLocation.x+" imageY  ="+imageLocation.y+"\n");
 
+        // 直到x和y都和图像中seedPoint重合，循环停止
         while (x != seedPoint.x - imageLocation.x || y != seedPoint.y - imageLocation.y){
             int px = parentPoint[y][x].x;
             int py = parentPoint[y][x].y;
