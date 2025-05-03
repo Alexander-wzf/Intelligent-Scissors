@@ -178,8 +178,8 @@ public class IS_View extends JFrame {
     }
 
     private boolean isInImage(Point point){
-        return point.x >= imageLocation.x && point.x <= imageLocation.x + scaledImage.getWidth()
-                && point.y >= imageLocation.y && point.y <= imageLocation.y + scaledImage.getHeight();
+        return point.x >= imageLocation.x && point.x < imageLocation.x + scaledImage.getWidth()
+                && point.y >= imageLocation.y && point.y < imageLocation.y + scaledImage.getHeight();
     }
 
     private void drawPath(Graphics g){
@@ -189,6 +189,8 @@ public class IS_View extends JFrame {
 
         int x = currentPoint.x - imageLocation.x;
         int y = currentPoint.y - imageLocation.y;
+//        System.out.println("currentX="+currentPoint.x+" currentY="+currentPoint.y
+//                +"\n"+"imageX  ="+imageLocation.x+" imageY  ="+imageLocation.y+"\n");
 
         while (x != seedPoint.x - imageLocation.x || y != seedPoint.y - imageLocation.y){
             int px = parentPoint[y][x].x;
