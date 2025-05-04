@@ -4,8 +4,6 @@ import view.IS_View;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.PriorityQueue;
 
 public class IS_Model {
@@ -28,14 +26,15 @@ public class IS_Model {
         return imageProcessing.getC(image);
     }
 
-    public Point[][] getParentPoint() {
+    public void setCost() {
         setImage(isView.getScaledImage());
+        this.cost = imageProcessing.getC(image);
+    }
+
+    public Point[][] getParentPoint() {
         setSeedPoint(isView.getSeedPoint());
 
         // dijkstra 算法
-        image = getImage();
-        cost = getCost();
-
         node sp = new node(seedPoint.getLocation(), 0);
         PriorityQueue<node> pq = new PriorityQueue<>();
         pq.offer(sp);
@@ -106,5 +105,22 @@ public class IS_Model {
 
     public BufferedImage getImage() {
         return image;
+    }
+
+    public Point getSnappedPoint(Point p, int R){
+        double min = cost[p.y][p.x];
+        Point snappedPoint = new Point(p.x,p.y);
+
+        for (int y = -R; y <= R; y++) {
+            for (int x = -R; x <= R; x++) {
+                if (p.y + y >= 0 && p.y + y < cost.length && p.x + x >= 0 && p.x + x < cost[0].length
+                        && x*x + y*y <= R*R && cost[p.y + y][p.x + x] < min){
+                    min = cost[p.y + y][p.x + x];
+                    snappedPoint.setLocation(p.x + x,p.y + y);
+                }
+            }
+        }
+
+        return snappedPoint;
     }
 }

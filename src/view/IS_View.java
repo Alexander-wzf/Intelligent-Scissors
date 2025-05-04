@@ -27,6 +27,7 @@ public class IS_View extends JFrame {
     List<List<Point>> completedPaths = new ArrayList<>();    // 已经完成的路径
     List<Point> currentPath = new ArrayList<>();             // 记录当前路径
     boolean cursorSnap = false;
+    int snapR = 7;                        // 吸附半径，默认为5
     boolean pathCooling = false;
     public IS_View() {
         // 设置frame
@@ -91,7 +92,10 @@ public class IS_View extends JFrame {
         openButton.addActionListener(e -> {
             seedPoint = null;
             currentPoint = null;
+            completedPaths.clear();
+            currentPath.clear();
             openImage();
+            isModel.setCost();
         });
 
         // 添加鼠标监听器
@@ -100,8 +104,13 @@ public class IS_View extends JFrame {
             public void mouseClicked(MouseEvent e) {
                 super.mouseClicked(e);
                 if (scaledImage != null && isInImage(e.getPoint())) { // 无图像或不在图像内时，不要seedPoint
-                    seedPoint = e.getPoint();
+                    if (cursorSnap){
+                        seedPoint = SnappedPoint(e.getPoint());
+                    } else {
+                        seedPoint = e.getPoint();
+                    }
                     setParentPoint(isModel.getParentPoint());
+
                     if (!currentPath.isEmpty()){
                         completedPaths.add(new ArrayList<>(currentPath));
                     }
@@ -115,7 +124,11 @@ public class IS_View extends JFrame {
                 super.mouseMoved(e);
                 if (scaledImage != null && seedPoint != null) { // 在无图像且无seedPoint时不需要currentPoint
                     if (isInImage(e.getPoint())) {              // 在图像内才要currentPoint
-                        currentPoint = e.getPoint();
+                        if (cursorSnap){
+                            currentPoint = SnappedPoint(e.getPoint());
+                        } else {
+                            currentPoint = e.getPoint();
+                        }
                         repaint();
                     } else
                         System.out.println("在图像区域外");
@@ -124,18 +137,8 @@ public class IS_View extends JFrame {
         });
 
         // 复选框监听器
-        snapCB.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                cursorSnap = snapCB.isSelected();
-            }
-        });
-        pathCoolingCB.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                pathCooling = pathCoolingCB.isSelected();
-            }
-        });
+        snapCB.addActionListener(e -> cursorSnap = snapCB.isSelected());
+        pathCoolingCB.addActionListener(e -> pathCooling = pathCoolingCB.isSelected());
     }
 
     private void openImage() {
@@ -240,6 +243,12 @@ public class IS_View extends JFrame {
         }
     }
 
+    private Point SnappedPoint(Point p){
+        p.setLocation(p.x - imageLocation.x, p.y - imageLocation.y);
+        p = isModel.getSnappedPoint(p, snapR);
+        p.setLocation(p.x + imageLocation.x, p.y + imageLocation.y);
+        return p;
+    }
     // ================ Getter and Setter =================
 
     public BufferedImage getScaledImage() {
