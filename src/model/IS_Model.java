@@ -30,7 +30,7 @@ public class IS_Model {
         setImage(isView.getScaledImage());
         setSeedPoint(isView.getSeedPoint());
 
-        // todo dijkstra 算法
+        // dijkstra 算法
         image = getImage();
         cost = getCost();
 
@@ -65,7 +65,7 @@ public class IS_Model {
                 int nx = x + dx[i];
                 int ny = y + dy[i];
 
-                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows && !visited[ny][nx]){
+                if (nx >= 0 && nx < cols && ny >= 0 && ny < rows ){
                     double currentDist = currentNode.dist + cost[ny][nx] * directionCost[i];
 
                     if (currentDist < dist[ny][nx]){

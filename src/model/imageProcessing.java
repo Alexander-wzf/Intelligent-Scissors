@@ -61,17 +61,17 @@ public class imageProcessing {
         }
 
         // 算卷积
-        for (int i = 1; i < rows; i++) {
-            for (int j = 1; j < cols; j++) {
+        for (int i = 1; i < rows + 1; i++) {
+            for (int j = 1; j < cols + 1; j++) {
                 double d = 0;
 
-                for (int k = 0; k < 2; k++) {
-                    for (int l = 0; l < 2; l++) {
+                for (int k = 0; k < 3; k++) {
+                    for (int l = 0; l < 3; l++) {
                         d = d + kernel[k][l]*appendZero[i+k-1][j+l-1];
                     }
                 }
 
-                D[i][j] = d;
+                D[i-1][j-1] = d;
             }
         }
 
@@ -105,7 +105,7 @@ public class imageProcessing {
     }
 
     /**
-     * 计算节点权重
+     * 计算节点权重 fG
      * @param magnitude 图像梯度大小
      * @return 权重矩阵 Weight = (G_max-G)/G_max
      */
@@ -127,7 +127,7 @@ public class imageProcessing {
     /**
      * 计算成本矩阵
      * @param magnitude 图像梯度大小
-     * @return 成本矩阵
+     * @return 成本矩阵 cost = 1 / (1 + G)
      */
     private static double[][] costMatrix(double[][] magnitude){
         // todo 完成对成本矩阵的计算
@@ -135,7 +135,7 @@ public class imageProcessing {
         int cols = magnitude[0].length;
         for (int i = 0; i < rows; i++) {
             for (int j = 0; j < cols; j++) {
-                magnitude[i][j] = 1 / (1 + magnitude[i][j]);
+                magnitude[i][j] = 1.0 / (1.0 + magnitude[i][j]);
             }
         }
         return magnitude;
@@ -155,10 +155,23 @@ public class imageProcessing {
         return max;
     }
 
+    /**
+     * 计算成本矩阵 cost = 1 / (1 + G)
+     * @param image 图像
+     * @return 成本矩阵 cost = 1 / (1 + G)
+     */
     public static double[][] getC(BufferedImage image){
         int[][] grayMatrix = image2gray(image);
         return costMatrix(gradientMagnitude(getIx(grayMatrix),getIy(grayMatrix)));
     }
 
-
+    /**
+     * 计算节点权重 fG = (G_max-G)/G_max
+     * @param image 图像
+     * @return 权重矩阵 Weight = (G_max-G)/G_max
+     */
+    public static double[][] getWeight(BufferedImage image){
+        int[][] grayMatrix = image2gray(image);
+        return nodeWeights(gradientMagnitude(getIx(grayMatrix),getIy(grayMatrix)));
+    }
 }
