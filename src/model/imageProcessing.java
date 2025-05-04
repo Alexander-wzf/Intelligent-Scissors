@@ -55,9 +55,21 @@ public class imageProcessing {
         double[][] D = new double[rows][cols];
         int[][] appendZero = new int[rows+2][cols+2];
 
-        // 矩阵补零
+        // 矩阵填充
+        // 内部填充
         for (int i = 1; i < rows + 1; i++) {
             System.arraycopy(grayMatrix[i - 1], 0, appendZero[i], 1, cols + 1 - 1);
+        }
+        // 边界填充
+        System.arraycopy(grayMatrix[0],0,appendZero[0],1,cols);
+        appendZero[0][0] = grayMatrix[0][0]; appendZero[0][cols+1] = grayMatrix[0][cols-1];
+        System.arraycopy(grayMatrix[rows-1],0,appendZero[rows+1],1,cols);
+        appendZero[rows+1][0] = grayMatrix[rows-1][0]; appendZero[rows+1][cols+1] = grayMatrix[rows-1][cols-1];
+        for (int i = 0; i < rows - 1; i++) {
+            appendZero[i+1][0] = grayMatrix[i][0];
+        }
+        for (int i = 0; i < rows - 1; i++) {
+            appendZero[i+1][cols+1] = grayMatrix[i][cols-1];
         }
 
         // 算卷积
@@ -130,7 +142,6 @@ public class imageProcessing {
      * @return 成本矩阵 cost = 1 / (1 + G)
      */
     private static double[][] costMatrix(double[][] magnitude){
-        // todo 完成对成本矩阵的计算
         int rows = magnitude.length;
         int cols = magnitude[0].length;
         for (int i = 0; i < rows; i++) {

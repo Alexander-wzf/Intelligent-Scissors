@@ -4,18 +4,20 @@ import view.IS_View;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.PriorityQueue;
 
 public class IS_Model {
     BufferedImage image;    // 对应view中scaledImage
-    double[][] cost;
-    Point[][] parentPoint;
+    double[][] cost;        // cost矩阵
+    Point[][] parentPoint;  // 当前点的父节点，用于画出路径
     Point seedPoint;
-    boolean[][] visited;
+    boolean[][] visited;    // 当前点是否访问
     private final int[] dx = {-1, 0, 1, -1, 1, -1, 0, 1};
     private final int[] dy = {-1, -1, -1, 0, 0, 1, 1, 1};
     private final double[] directionCost = {Math.sqrt(2), 1, Math.sqrt(2), 1, 1, Math.sqrt(2), 1, Math.sqrt(2)};
-    double[][] dist;
+    double[][] dist;        // 储存距离
     IS_View isView;
 
     public void setImage(BufferedImage image) {

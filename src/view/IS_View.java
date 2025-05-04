@@ -1,20 +1,21 @@
 package view;
 
-import edu.princeton.cs.algs4.Queue;
 import model.IS_Model;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
+import java.awt.event.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class IS_View extends JFrame {
     private JButton openButton;              // 图像选择按钮
     private JPanel imageShowPanel;           // 图像展示面板
+    private JCheckBox snapCB;                // 光标吸附复选框
+    private JCheckBox pathCoolingCB;         // 路径冷却复选框
     File currentImageFile;                   // 读取的文件
     private BufferedImage originalImage;     // 原图像
     private BufferedImage scaledImage;       // 缩放后的图像以适应窗口
@@ -23,8 +24,10 @@ public class IS_View extends JFrame {
     private Point currentPoint;              // 当前鼠标位置
     Point[][] parentPoint;                   // 父亲点：dijkstra算法中的指向
     IS_Model isModel;
-    Queue<Point> savedPoint;                 // 保存已经绘制的节点
-
+    List<List<Point>> completedPaths = new ArrayList<>();    // 已经完成的路径
+    List<Point> currentPath = new ArrayList<>();             // 记录当前路径
+    boolean cursorSnap = false;
+    boolean pathCooling = false;
     public IS_View() {
         // 设置frame
         setTitle("Intelligent Scissors");
@@ -41,6 +44,8 @@ public class IS_View extends JFrame {
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(openButton);
+        buttonPanel.add(snapCB);
+        buttonPanel.add(pathCoolingCB);
         add(buttonPanel, BorderLayout.SOUTH);
 
         // 添加监听器
@@ -56,6 +61,7 @@ public class IS_View extends JFrame {
 
     private void createComponents(){
         openButton = new JButton("打开图片");
+
         imageShowPanel = new JPanel(){
             @Override // 重写repaint方法
             protected void paintComponent(Graphics g) {
@@ -74,6 +80,10 @@ public class IS_View extends JFrame {
                 }
             }
         };
+
+        snapCB = new JCheckBox("光标吸附");
+
+        pathCoolingCB = new JCheckBox("路径冷却");
     }
 
     private void createListener(){
@@ -92,6 +102,9 @@ public class IS_View extends JFrame {
                 if (scaledImage != null && isInImage(e.getPoint())) { // 无图像或不在图像内时，不要seedPoint
                     seedPoint = e.getPoint();
                     setParentPoint(isModel.getParentPoint());
+                    if (!currentPath.isEmpty()){
+                        completedPaths.add(new ArrayList<>(currentPath));
+                    }
                     repaint();
                 } else System.out.println("不在图像区域内");
             }
@@ -110,16 +123,19 @@ public class IS_View extends JFrame {
             }
         });
 
-        /*
- 添加组件大小变化监听器
-        addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentResized(java.awt.event.ComponentEvent evt) {
-                if (originalImage != null) {
-                    resizeImage();
-                }
+        // 复选框监听器
+        snapCB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cursorSnap = snapCB.isSelected();
             }
         });
-*/
+        pathCoolingCB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pathCooling = pathCoolingCB.isSelected();
+            }
+        });
     }
 
     private void openImage() {
@@ -190,17 +206,21 @@ public class IS_View extends JFrame {
     }
 
     private void drawPath(Graphics g){
+        g.setColor(Color.orange);
+
         // 先画出已保存的路线 todo
+        for (List<Point> path : completedPaths) {
+            drawSinglePath(g, path);
+        }
 
         // 再画出新的路线
-        g.setColor(Color.orange);
+        currentPath.clear();
 
         int x = currentPoint.x - imageLocation.x;
         int y = currentPoint.y - imageLocation.y;
-//        System.out.println("currentX="+currentPoint.x+" currentY="+currentPoint.y
-//                +"\n"+"imageX  ="+imageLocation.x+" imageY  ="+imageLocation.y+"\n");
+        currentPath.add(new Point(currentPoint.x,currentPoint.y));
 
-        // 直到x和y都和图像中seedPoint重合，循环停止
+        // // 直到x和y都和图像中seedPoint重合，循环停止
         while (x != seedPoint.x - imageLocation.x || y != seedPoint.y - imageLocation.y){
             int px = parentPoint[y][x].x;
             int py = parentPoint[y][x].y;
@@ -208,6 +228,15 @@ public class IS_View extends JFrame {
             g.drawLine(x + imageLocation.x,y + imageLocation.y,px + imageLocation.x,py + imageLocation.y);
             x = px;
             y = py;
+            currentPath.add(new Point(px + imageLocation.x,py + imageLocation.y));
+        }
+    }
+
+    private void drawSinglePath(Graphics g, List<Point> path){
+        for (int i = 1; i < path.size(); i++) {
+            Point p1 = path.get(i-1);
+            Point p2 = path.get(i);
+            g.drawLine(p1.x, p1.y, p2.x, p2.y);
         }
     }
 
