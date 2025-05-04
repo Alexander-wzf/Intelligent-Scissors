@@ -13,6 +13,7 @@ import java.util.List;
 
 public class IS_View extends JFrame {
     private JButton openButton;              // 图像选择按钮
+    private JButton screenShotButton;        // 截图按钮
     private JPanel imageShowPanel;           // 图像展示面板
     private JCheckBox snapCB;                // 光标吸附复选框
     private JCheckBox pathCoolingCB;         // 路径冷却复选框
@@ -45,6 +46,7 @@ public class IS_View extends JFrame {
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(openButton);
+        buttonPanel.add(screenShotButton);
         buttonPanel.add(snapCB);
         buttonPanel.add(pathCoolingCB);
         add(buttonPanel, BorderLayout.SOUTH);
@@ -62,6 +64,7 @@ public class IS_View extends JFrame {
 
     private void createComponents(){
         openButton = new JButton("打开图片");
+        screenShotButton = new JButton("截图");
 
         imageShowPanel = new JPanel(){
             @Override // 重写repaint方法
@@ -88,7 +91,7 @@ public class IS_View extends JFrame {
     }
 
     private void createListener(){
-        // 添加事件监听器
+        // 按钮事件监听器
         openButton.addActionListener(e -> {
             seedPoint = null;
             currentPoint = null;
@@ -96,6 +99,10 @@ public class IS_View extends JFrame {
             currentPath.clear();
             openImage();
             isModel.setCost();
+        });
+
+        screenShotButton.addActionListener(e -> {
+            screenShot();
         });
 
         // 添加鼠标监听器
@@ -248,6 +255,10 @@ public class IS_View extends JFrame {
         p = isModel.getSnappedPoint(p, snapR);
         p.setLocation(p.x + imageLocation.x, p.y + imageLocation.y);
         return p;
+    }
+
+    private void screenShot(){
+        // TODO
     }
     // ================ Getter and Setter =================
 
