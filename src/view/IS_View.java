@@ -27,9 +27,10 @@ public class IS_View extends JFrame {
     IS_Model isModel;
     List<List<Point>> completedPaths = new ArrayList<>();    // 已经完成的路径
     List<Point> currentPath = new ArrayList<>();             // 记录当前路径
-    boolean cursorSnap = false;
+    boolean cursorSnap = false;           // 光标吸附
     int snapR = 7;                        // 吸附半径，默认为5
-    boolean pathCooling = false;
+    boolean pathCooling = false;          // 路径冷却
+    boolean[][] isPath;
     public IS_View() {
         // 设置frame
         setTitle("Intelligent Scissors");
@@ -218,7 +219,7 @@ public class IS_View extends JFrame {
     private void drawPath(Graphics g){
         g.setColor(Color.orange);
 
-        // 先画出已保存的路线 todo
+        // 先画出已保存的路线
         for (List<Point> path : completedPaths) {
             drawSinglePath(g, path);
         }
@@ -258,7 +259,54 @@ public class IS_View extends JFrame {
     }
 
     private void screenShot(){
-        // TODO
+        // TODO 感觉不能用Boolean数组，还得用int数组
+        // 储存已经为路径的坐标为true
+        int rows = scaledImage.getHeight();
+        int cols = scaledImage.getWidth();
+        isPath = new boolean[scaledImage.getHeight()][scaledImage.getWidth()];
+
+        for (List<Point> path: completedPaths) {
+            for (Point p: path){
+                isPath[p.y][p.x] = true;
+            }
+        }
+
+        // 遍历数组把被圈在路径内的值都赋值为true
+        boolean isInPath = false;
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (isPath[i][j]){
+                    isInPath = true; // todo 这里有点问题，如果这一行只有一个边界像素，后面的值都会变
+                }
+                if (isInPath){
+                    isPath[i][j] = true;
+                }
+            }
+        }
+
+        int black = 0xFF000000;
+        BufferedImage screenShotImage = new BufferedImage(cols,rows,BufferedImage.TYPE_INT_RGB);
+        for (int i = 0; i < rows; i++) {
+            for (int j = 0; j < cols; j++) {
+                if (isPath[i][j]){
+                    screenShotImage.setRGB(j,i,scaledImage.getRGB(j,i));
+                } else screenShotImage.setRGB(j,i,black);
+            }
+        }
+
+        JFrame showScreenShotFrame = new JFrame("ScreenShot");
+        JPanel ssPanel = new JPanel(){
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                g.drawImage(screenShotImage,0,0,showScreenShotFrame);
+            }
+        };
+        showScreenShotFrame.add(ssPanel);
+        showScreenShotFrame.setVisible(true);
+        showScreenShotFrame.setLocationRelativeTo(this);
+        showScreenShotFrame.setSize(screenShotImage.getWidth()+showScreenShotFrame.getInsets().left+showScreenShotFrame.getInsets().right,
+                screenShotImage.getHeight()+showScreenShotFrame.getInsets().bottom+showScreenShotFrame.getInsets().top);
     }
     // ================ Getter and Setter =================
 
