@@ -102,7 +102,7 @@ public class IS_View extends JFrame {
 
         pathCoolingCB = new JCheckBox("路径冷却");
 
-        SpinnerNumberModel spinnerNumberModel = new SpinnerNumberModel(10,0,21,1);
+        SpinnerNumberModel spinnerNumberModel = new SpinnerNumberModel(10,0,41,1);
         snapRSpinner = new JSpinner(spinnerNumberModel);
         // 限制 JSpinner 只能通过按钮调整（禁用键盘输入）
         JFormattedTextField tf = ((JSpinner.DefaultEditor)snapRSpinner.getEditor()).getTextField();
@@ -194,16 +194,16 @@ public class IS_View extends JFrame {
         // 微调器监听器
         snapRSpinner.addChangeListener(e -> {
             snapR = (int) snapRSpinner.getValue();
-            if (snapR == 21 || snapR == 0){
+            if (snapR == 41 || snapR == 0){
                 JOptionPane.showMessageDialog(
                         imageShowPanel,  // 父组件，可以为null
-                        "光标吸附范围 1 ~ 20 ",  // 消息内容
+                        "光标吸附范围 1 ~ 40 ",  // 消息内容
                         "提示",           // 对话框标题
                         JOptionPane.INFORMATION_MESSAGE  // 消息类型
                 );
-                if (snapR == 21) {
+                if (snapR == 41) {
                     snapR -= 1;
-                    snapRSpinner.setValue(20);
+                    snapRSpinner.setValue(40);
                 }else {
                     snapR += 1;
                     snapRSpinner.setValue(1);
