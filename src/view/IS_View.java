@@ -4,10 +4,10 @@ import model.IS_Model;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
-import javax.swing.event.ChangeEvent;
-import javax.swing.event.ChangeListener;
 import java.awt.*;
-import java.awt.event.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseMotionAdapter;
 import java.awt.geom.Area;
 import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
@@ -36,7 +36,8 @@ public class IS_View extends JFrame {
     boolean cursorSnap = false;           // 光标吸附
     int snapR = 7;                        // 吸附半径，默认为5
     boolean pathCooling = false;          // 路径冷却
-    int pathSize;
+    int pathSize;                         // 记录路径长度，优化性能
+    boolean listenMouse = true;           // 是否监听鼠标
     public IS_View() {
         // 设置frame
         setTitle("Intelligent Scissors");
@@ -109,6 +110,7 @@ public class IS_View extends JFrame {
     private void createListener(){
         // 按钮事件监听器
         openButton.addActionListener(e -> {
+            listenMouse = true;
             seedPoint = null;
             currentPoint = null;
             completedPaths.clear();
@@ -121,18 +123,29 @@ public class IS_View extends JFrame {
         screenShotButton.addActionListener(e -> screenShot());
 
         clearButton.addActionListener(e -> {
+            listenMouse = true;
             seedPoint = null;
             currentPoint = null;
             currentPath.clear();
             completedPaths.clear();
+            pathSize = 0;
             repaint();
-            System.out.println("已清除");
+            System.out.println("已清除当前路径");
         });
 
         // 添加鼠标监听器
         imageShowPanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                if (!listenMouse){
+                    JOptionPane.showMessageDialog(
+                            imageShowPanel,  // 父组件，可以为null
+                            "请先清除当前路径",  // 消息内容
+                            "提示",           // 对话框标题
+                            JOptionPane.INFORMATION_MESSAGE  // 消息类型
+                    );
+                    return;
+                }
                 super.mouseClicked(e);
                 if (scaledImage != null && isInImage(e.getPoint())) { // 无图像或不在图像内时，不要seedPoint
                     if (cursorSnap){
@@ -155,6 +168,7 @@ public class IS_View extends JFrame {
         imageShowPanel.addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseMoved(MouseEvent e) {
+                if (!listenMouse) return;
                 super.mouseMoved(e);
                 if (scaledImage != null && seedPoint != null) { // 在无图像且无seedPoint时不需要currentPoint
                     if (isInImage(e.getPoint())) {              // 在图像内才要currentPoint
@@ -180,9 +194,9 @@ public class IS_View extends JFrame {
             snapR = (int) snapRSpinner.getValue();
             if (snapR == 21 || snapR == 0){
                 JOptionPane.showMessageDialog(
-                        null,  // 父组件，可以为null
+                        imageShowPanel,  // 父组件，可以为null
                         "光标吸附范围 1 ~ 20 ",  // 消息内容
-                        "消息",           // 对话框标题
+                        "提示",           // 对话框标题
                         JOptionPane.INFORMATION_MESSAGE  // 消息类型
                 );
                 if (snapR == 21) {
@@ -272,6 +286,7 @@ public class IS_View extends JFrame {
         }
 
         // 再画出新的路线
+        if (!listenMouse) return;
         currentPath.clear();
 
         int x = currentPoint.x - imageLocation.x;
@@ -306,8 +321,12 @@ public class IS_View extends JFrame {
     }
 
     private void screenShot(){
-        // 把所有路径整合到一个list里
         if (completedPaths.isEmpty()) return;
+        listenMouse = false;
+        currentPath.clear();
+        repaint();
+
+        // 把所有路径整合到一个list里
         System.out.println("路径长度："+pathSize);
         ArrayList<Point> combinePath = new ArrayList<>(pathSize);
         for (int i = completedPaths.size() - 1; i >= 0; i--) {
