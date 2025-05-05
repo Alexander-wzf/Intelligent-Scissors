@@ -311,7 +311,7 @@ public class IS_View extends JFrame {
             }
         }
 
-        JFrame showScreenShotFrame = new JFrame("ScreenShot");
+        JFrame showScreenShotFrame = new JFrame("截图");
         JPanel ssPanel = new JPanel(){
             @Override
             protected void paintComponent(Graphics g) {
@@ -329,90 +329,45 @@ public class IS_View extends JFrame {
     private int[] findCoordinate(Area area){
         int[] coordinate = new int[4]; // y1 y2 x1 x2
         // 找y1, y2
-        int hasTrue = 0;
+        loop:
         for (int i = 0; i < scaledImage.getHeight(); i++) {
-            int trueNum = 0;
             for (int j = 0; j < scaledImage.getWidth(); j++) {
                 if (area.contains(new Point(j + imageLocation.x,i + imageLocation.y))) {
-                    trueNum++;
+                    coordinate[0] = i;
+                    break loop;
                 }
             }
-            if (trueNum != 0) hasTrue++;
-            if (hasTrue == 1) coordinate[0] = i;
-            if (hasTrue > 0 && trueNum == 0){
-                coordinate[1] = i;
-                break;
+        }
+        loop:
+        for (int i = scaledImage.getHeight() - 1; i >= 0; i--) {
+            for (int j = 0; j < scaledImage.getWidth(); j++) {
+                if (area.contains(new Point(j + imageLocation.x,i + imageLocation.y))) {
+                    coordinate[1] = i;
+                    break loop;
+                }
             }
         }
         // 找x1, x2
-        hasTrue = 0;
-        for (int i = 0; i < scaledImage.getWidth(); i++) {
-            int trueNum = 0;
-            for (int j = 0; j < scaledImage.getHeight(); j++) {
+        loop:
+        for (int i = 0; i < scaledImage.getWidth(); i++) {// 列
+            for (int j = 0; j < scaledImage.getHeight(); j++) {// 行
                 if (area.contains(new Point(i + imageLocation.x,j + imageLocation.y))) {
-                    trueNum++;
+                    coordinate[2] = i;
+                    break loop;
                 }
             }
-            if (trueNum != 0) hasTrue++;
-            if (hasTrue == 1) coordinate[2] = i;
-            if (hasTrue > 0 && trueNum == 0){
-                coordinate[3] = i;
-                break;
+        }
+        loop:
+        for (int i = scaledImage.getWidth() - 1; i >= 0; i--) {// 列
+            for (int j = 0; j < scaledImage.getHeight(); j++) {// 行
+                if (area.contains(new Point(i + imageLocation.x,j + imageLocation.y))) {
+                    coordinate[3] = i;
+                    break loop;
+                }
             }
         }
         return coordinate;
     }
-//    private void screenShot(){
-//        // TODO 感觉不能用Boolean数组，还得用int数组
-//        // 储存已经为路径的坐标为true
-//        int rows = scaledImage.getHeight();
-//        int cols = scaledImage.getWidth();
-//        isPath = new boolean[scaledImage.getHeight()][scaledImage.getWidth()];
-//
-//        for (List<Point> path: completedPaths) {
-//            for (Point p: path){
-//                isPath[p.y][p.x] = true;
-//            }
-//        }
-//
-//        // 遍历数组把被圈在路径内的值都赋值为true
-//        boolean isInPath = false;
-//        for (int i = 0; i < rows; i++) {
-//            for (int j = 0; j < cols; j++) {
-//                if (isPath[i][j]){
-//                    isInPath = true; // todo 这里有点问题，如果这一行只有一个边界像素，后面的值都会变
-//                }
-//                if (isInPath){
-//                    isPath[i][j] = true;
-//                }
-//            }
-//        }
-//
-//        int black = 0xFF000000;
-//        BufferedImage screenShotImage = new BufferedImage(cols,rows,BufferedImage.TYPE_INT_RGB);
-//        for (int i = 0; i < rows; i++) {
-//            for (int j = 0; j < cols; j++) {
-//                if (isPath[i][j]){
-//                    screenShotImage.setRGB(j,i,scaledImage.getRGB(j,i));
-//                } else screenShotImage.setRGB(j,i,black);
-//            }
-//        }
-//
-//        JFrame showScreenShotFrame = new JFrame("ScreenShot");
-//        JPanel ssPanel = new JPanel(){
-//            @Override
-//            protected void paintComponent(Graphics g) {
-//                super.paintComponent(g);
-//                g.drawImage(screenShotImage,0,0,showScreenShotFrame);
-//            }
-//        };
-//        showScreenShotFrame.add(ssPanel);
-//        showScreenShotFrame.setVisible(true);
-//        showScreenShotFrame.setLocationRelativeTo(this);
-//        showScreenShotFrame.setSize(screenShotImage.getWidth()+showScreenShotFrame.getInsets().left+showScreenShotFrame.getInsets().right,
-//                screenShotImage.getHeight()+showScreenShotFrame.getInsets().bottom+showScreenShotFrame.getInsets().top);
-//    }
-    // ================ Getter and Setter =================
 
     public BufferedImage getScaledImage() {
         return scaledImage;
