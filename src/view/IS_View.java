@@ -6,6 +6,8 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.awt.geom.Area;
+import java.awt.geom.Path2D;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
@@ -31,6 +33,7 @@ public class IS_View extends JFrame {
     int snapR = 7;                        // 吸附半径，默认为5
     boolean pathCooling = false;          // 路径冷却
     boolean[][] isPath;
+    int pathSize;
     public IS_View() {
         // 设置frame
         setTitle("Intelligent Scissors");
@@ -98,6 +101,7 @@ public class IS_View extends JFrame {
             currentPoint = null;
             completedPaths.clear();
             currentPath.clear();
+            pathSize = 0;
             openImage();
             isModel.setCost();
         });
@@ -120,10 +124,13 @@ public class IS_View extends JFrame {
                     setParentPoint(isModel.getParentPoint());
 
                     if (!currentPath.isEmpty()){
+                        pathSize += currentPath.size();
                         completedPaths.add(new ArrayList<>(currentPath));
                     }
                     repaint();
-                } else System.out.println("不在图像区域内");
+                } else {
+//                    System.out.println("不在图像区域内");
+                }
             }
         });
         imageShowPanel.addMouseMotionListener(new MouseMotionAdapter() {
@@ -138,8 +145,9 @@ public class IS_View extends JFrame {
                             currentPoint = e.getPoint();
                         }
                         repaint();
-                    } else
-                        System.out.println("在图像区域外");
+                    } else {
+//                        System.out.println("在图像区域外");
+                    }
                 }
             }
         });
@@ -217,7 +225,7 @@ public class IS_View extends JFrame {
     }
 
     private void drawPath(Graphics g){
-        g.setColor(Color.orange);
+        g.setColor(Color.green);
 
         // 先画出已保存的路线
         for (List<Point> path : completedPaths) {
@@ -259,36 +267,33 @@ public class IS_View extends JFrame {
     }
 
     private void screenShot(){
-        // TODO 感觉不能用Boolean数组，还得用int数组
-        // 储存已经为路径的坐标为true
-        int rows = scaledImage.getHeight();
-        int cols = scaledImage.getWidth();
-        isPath = new boolean[scaledImage.getHeight()][scaledImage.getWidth()];
-
-        for (List<Point> path: completedPaths) {
-            for (Point p: path){
-                isPath[p.y][p.x] = true;
-            }
+        // 把所有路径整合到一个list里
+        if (completedPaths.isEmpty()) return;
+        System.out.println("路径长度："+pathSize);
+        ArrayList<Point> combinePath = new ArrayList<>(pathSize);
+        for (int i = completedPaths.size() - 1; i >= 0; i--) {
+            combinePath.addAll(completedPaths.get(i));
         }
+        System.out.println("点集长度："+combinePath.size());
 
-        // 遍历数组把被圈在路径内的值都赋值为true
-        boolean isInPath = false;
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                if (isPath[i][j]){
-                    isInPath = true; // todo 这里有点问题，如果这一行只有一个边界像素，后面的值都会变
-                }
-                if (isInPath){
-                    isPath[i][j] = true;
-                }
-            }
+        // 生成闭合路径
+        Path2D.Double path = new Path2D.Double();
+        path.moveTo(combinePath.get(0).x, combinePath.get(0).y);
+        for (int i = 1; i < combinePath.size(); i++) {
+            path.lineTo(combinePath.get(i).x, combinePath.get(i).y);
         }
+        path.closePath();
 
+        // 闭合区域
+        Area area = new Area(path);
+
+        // 画出内部区域
         int black = 0xFF000000;
-        BufferedImage screenShotImage = new BufferedImage(cols,rows,BufferedImage.TYPE_INT_RGB);
-        for (int i = 0; i < rows; i++) {
-            for (int j = 0; j < cols; j++) {
-                if (isPath[i][j]){
+        BufferedImage screenShotImage = new BufferedImage(scaledImage.getWidth(),scaledImage.getHeight(),BufferedImage.TYPE_INT_RGB);
+
+        for (int i = 0; i < scaledImage.getHeight(); i++) {
+            for (int j = 0; j < scaledImage.getWidth(); j++) {
+                if (area.contains(new Point(j + imageLocation.x,i + imageLocation.y))){
                     screenShotImage.setRGB(j,i,scaledImage.getRGB(j,i));
                 } else screenShotImage.setRGB(j,i,black);
             }
@@ -308,6 +313,56 @@ public class IS_View extends JFrame {
         showScreenShotFrame.setSize(screenShotImage.getWidth()+showScreenShotFrame.getInsets().left+showScreenShotFrame.getInsets().right,
                 screenShotImage.getHeight()+showScreenShotFrame.getInsets().bottom+showScreenShotFrame.getInsets().top);
     }
+//    private void screenShot(){
+//        // TODO 感觉不能用Boolean数组，还得用int数组
+//        // 储存已经为路径的坐标为true
+//        int rows = scaledImage.getHeight();
+//        int cols = scaledImage.getWidth();
+//        isPath = new boolean[scaledImage.getHeight()][scaledImage.getWidth()];
+//
+//        for (List<Point> path: completedPaths) {
+//            for (Point p: path){
+//                isPath[p.y][p.x] = true;
+//            }
+//        }
+//
+//        // 遍历数组把被圈在路径内的值都赋值为true
+//        boolean isInPath = false;
+//        for (int i = 0; i < rows; i++) {
+//            for (int j = 0; j < cols; j++) {
+//                if (isPath[i][j]){
+//                    isInPath = true; // todo 这里有点问题，如果这一行只有一个边界像素，后面的值都会变
+//                }
+//                if (isInPath){
+//                    isPath[i][j] = true;
+//                }
+//            }
+//        }
+//
+//        int black = 0xFF000000;
+//        BufferedImage screenShotImage = new BufferedImage(cols,rows,BufferedImage.TYPE_INT_RGB);
+//        for (int i = 0; i < rows; i++) {
+//            for (int j = 0; j < cols; j++) {
+//                if (isPath[i][j]){
+//                    screenShotImage.setRGB(j,i,scaledImage.getRGB(j,i));
+//                } else screenShotImage.setRGB(j,i,black);
+//            }
+//        }
+//
+//        JFrame showScreenShotFrame = new JFrame("ScreenShot");
+//        JPanel ssPanel = new JPanel(){
+//            @Override
+//            protected void paintComponent(Graphics g) {
+//                super.paintComponent(g);
+//                g.drawImage(screenShotImage,0,0,showScreenShotFrame);
+//            }
+//        };
+//        showScreenShotFrame.add(ssPanel);
+//        showScreenShotFrame.setVisible(true);
+//        showScreenShotFrame.setLocationRelativeTo(this);
+//        showScreenShotFrame.setSize(screenShotImage.getWidth()+showScreenShotFrame.getInsets().left+showScreenShotFrame.getInsets().right,
+//                screenShotImage.getHeight()+showScreenShotFrame.getInsets().bottom+showScreenShotFrame.getInsets().top);
+//    }
     // ================ Getter and Setter =================
 
     public BufferedImage getScaledImage() {
