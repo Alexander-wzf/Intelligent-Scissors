@@ -35,7 +35,7 @@ public class IS_View extends JFrame {
     List<Point> currentPath = new ArrayList<>();             // 记录当前路径
     boolean cursorSnap = false;           // 光标吸附
     int snapR = 7;                        // 吸附半径，默认为5
-    boolean pathCooling = false;          // 路径冷却
+    boolean isPathCooling = false;        // 路径冷却
     int pathSize;                         // 记录路径长度，优化性能
     boolean listenMouse = true;           // 是否监听鼠标
     public IS_View() {
@@ -91,7 +91,9 @@ public class IS_View extends JFrame {
                     g.fillOval(seedPoint.x - 5, seedPoint.y - 5, 10, 10);
                 }
                 if (parentPoint != null && currentPoint != null && seedPoint != null){
-                    drawPath(g);
+                    if (isPathCooling){
+                        drawPathCooling(g);
+                    } else drawPath(g);
                 }
             }
         };
@@ -153,8 +155,8 @@ public class IS_View extends JFrame {
                     } else {
                         seedPoint = e.getPoint();
                     }
+                    // 重置seedPoint后要干的事
                     setParentPoint(isModel.getParentPoint());
-
                     if (!currentPath.isEmpty()){
                         pathSize += currentPath.size();
                         completedPaths.add(new ArrayList<>(currentPath));
@@ -187,7 +189,7 @@ public class IS_View extends JFrame {
 
         // 复选框监听器
         snapCB.addActionListener(e -> cursorSnap = snapCB.isSelected());
-        pathCoolingCB.addActionListener(e -> pathCooling = pathCoolingCB.isSelected());
+        pathCoolingCB.addActionListener(e -> isPathCooling = pathCoolingCB.isSelected());
 
         // 微调器监听器
         snapRSpinner.addChangeListener(e -> {
@@ -299,12 +301,53 @@ public class IS_View extends JFrame {
             int py = parentPoint[y][x].y;
 
             g.drawLine(x + imageLocation.x,y + imageLocation.y,px + imageLocation.x,py + imageLocation.y);
-            x = px;
+            x = px; // 图像中的，并非面板中的
             y = py;
             currentPath.add(new Point(px + imageLocation.x,py + imageLocation.y));
         }
     }
 
+    List<Point> newPath = new ArrayList<>();
+    private void drawPathCooling(Graphics g){
+        g.setColor(Color.green);
+
+        // 先画出已保存的路线
+        for (List<Point> path : completedPaths) {
+            drawSinglePath(g, path);
+        }
+
+        int threshold = 100;
+        // 再画出新的路线
+        if (!listenMouse) return;
+        currentPath.clear();
+
+        int x = currentPoint.x - imageLocation.x;
+        int y = currentPoint.y - imageLocation.y;
+        currentPath.add(new Point(currentPoint.x,currentPoint.y));
+
+        // // 直到x和y都和图像中seedPoint重合，循环停止
+        while (x != seedPoint.x - imageLocation.x || y != seedPoint.y - imageLocation.y){
+            int px = parentPoint[y][x].x;
+            int py = parentPoint[y][x].y;
+
+            g.drawLine(x + imageLocation.x,y + imageLocation.y,px + imageLocation.x,py + imageLocation.y);
+            x = px; // 图像中的，并非面板中的
+            y = py;
+            currentPath.add(new Point(px + imageLocation.x,py + imageLocation.y));
+        }
+
+        if (currentPath.size() > threshold){
+            seedPoint = currentPath.get(currentPath.size() - threshold);
+            setParentPoint(isModel.getParentPoint());
+            for (int i = currentPath.size() - threshold; i < currentPath.size(); i++) {
+                newPath.add(currentPath.get(i));
+            }
+            pathSize += newPath.size();
+            completedPaths.add(new ArrayList<>(newPath));
+            newPath.clear();
+            repaint();
+        }
+    }
     private void drawSinglePath(Graphics g, List<Point> path){
         for (int i = 1; i < path.size(); i++) {
             Point p1 = path.get(i-1);
