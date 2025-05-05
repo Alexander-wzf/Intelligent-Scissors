@@ -4,6 +4,8 @@ import model.IS_Model;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Area;
@@ -19,6 +21,7 @@ public class IS_View extends JFrame {
     private JButton clearButton;             // 清除路径
     private JPanel imageShowPanel;           // 图像展示面板
     private JCheckBox snapCB;                // 光标吸附复选框
+    private JSpinner snapRSpinner;           // 吸附距离
     private JCheckBox pathCoolingCB;         // 路径冷却复选框
     File currentImageFile;                   // 读取的文件
     private BufferedImage originalImage;     // 原图像
@@ -52,8 +55,9 @@ public class IS_View extends JFrame {
         buttonPanel.add(openButton);
         buttonPanel.add(screenShotButton);
         buttonPanel.add(clearButton);
-        buttonPanel.add(snapCB);
         buttonPanel.add(pathCoolingCB);
+        buttonPanel.add(snapCB);
+        buttonPanel.add(snapRSpinner);
         add(buttonPanel, BorderLayout.SOUTH);
 
         // 添加监听器
@@ -94,6 +98,12 @@ public class IS_View extends JFrame {
         snapCB = new JCheckBox("光标吸附");
 
         pathCoolingCB = new JCheckBox("路径冷却");
+
+        SpinnerNumberModel spinnerNumberModel = new SpinnerNumberModel(10,0,21,1);
+        snapRSpinner = new JSpinner(spinnerNumberModel);
+        // 限制 JSpinner 只能通过按钮调整（禁用键盘输入）
+        JFormattedTextField tf = ((JSpinner.DefaultEditor)snapRSpinner.getEditor()).getTextField();
+        tf.setEditable(false);
     }
 
     private void createListener(){
@@ -138,7 +148,7 @@ public class IS_View extends JFrame {
                     }
                     repaint();
                 } else {
-//                    System.out.println("不在图像区域内");
+                    System.out.println("不在图像区域内");
                 }
             }
         });
@@ -155,7 +165,7 @@ public class IS_View extends JFrame {
                         }
                         repaint();
                     } else {
-//                        System.out.println("在图像区域外");
+                        System.out.println("在图像区域外");
                     }
                 }
             }
@@ -164,6 +174,26 @@ public class IS_View extends JFrame {
         // 复选框监听器
         snapCB.addActionListener(e -> cursorSnap = snapCB.isSelected());
         pathCoolingCB.addActionListener(e -> pathCooling = pathCoolingCB.isSelected());
+
+        // 微调器监听器
+        snapRSpinner.addChangeListener(e -> {
+            snapR = (int) snapRSpinner.getValue();
+            if (snapR == 21 || snapR == 0){
+                JOptionPane.showMessageDialog(
+                        null,  // 父组件，可以为null
+                        "光标吸附范围 1 ~ 20 ",  // 消息内容
+                        "消息",           // 对话框标题
+                        JOptionPane.INFORMATION_MESSAGE  // 消息类型
+                );
+                if (snapR == 21) {
+                    snapR -= 1;
+                    snapRSpinner.setValue(20);
+                }else {
+                    snapR += 1;
+                    snapRSpinner.setValue(1);
+                }
+            }
+        });
     }
 
     private void openImage() {
