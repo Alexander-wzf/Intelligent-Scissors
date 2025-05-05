@@ -16,6 +16,7 @@ import java.util.List;
 public class IS_View extends JFrame {
     private JButton openButton;              // 图像选择按钮
     private JButton screenShotButton;        // 截图按钮
+    private JButton clearButton;             // 清除路径
     private JPanel imageShowPanel;           // 图像展示面板
     private JCheckBox snapCB;                // 光标吸附复选框
     private JCheckBox pathCoolingCB;         // 路径冷却复选框
@@ -32,7 +33,6 @@ public class IS_View extends JFrame {
     boolean cursorSnap = false;           // 光标吸附
     int snapR = 7;                        // 吸附半径，默认为5
     boolean pathCooling = false;          // 路径冷却
-    boolean[][] isPath;
     int pathSize;
     public IS_View() {
         // 设置frame
@@ -51,6 +51,7 @@ public class IS_View extends JFrame {
         JPanel buttonPanel = new JPanel();
         buttonPanel.add(openButton);
         buttonPanel.add(screenShotButton);
+        buttonPanel.add(clearButton);
         buttonPanel.add(snapCB);
         buttonPanel.add(pathCoolingCB);
         add(buttonPanel, BorderLayout.SOUTH);
@@ -69,6 +70,7 @@ public class IS_View extends JFrame {
     private void createComponents(){
         openButton = new JButton("打开图片");
         screenShotButton = new JButton("截图");
+        clearButton = new JButton("清除");
 
         imageShowPanel = new JPanel(){
             @Override // 重写repaint方法
@@ -103,11 +105,18 @@ public class IS_View extends JFrame {
             currentPath.clear();
             pathSize = 0;
             openImage();
-            isModel.setCost();
+            if (scaledImage != null) isModel.setCost();
         });
 
-        screenShotButton.addActionListener(e -> {
-            screenShot();
+        screenShotButton.addActionListener(e -> screenShot());
+
+        clearButton.addActionListener(e -> {
+            seedPoint = null;
+            currentPoint = null;
+            currentPath.clear();
+            completedPaths.clear();
+            repaint();
+            System.out.println("已清除");
         });
 
         // 添加鼠标监听器
@@ -286,16 +295,19 @@ public class IS_View extends JFrame {
 
         // 闭合区域
         Area area = new Area(path);
+        int[] coordinate = findCoordinate(area);
+        int width = coordinate[3] - coordinate[2];
+        int height = coordinate[1] - coordinate[0];
 
         // 画出内部区域
-        int black = 0xFF000000;
-        BufferedImage screenShotImage = new BufferedImage(scaledImage.getWidth(),scaledImage.getHeight(),BufferedImage.TYPE_INT_RGB);
+        BufferedImage screenShotImage = new BufferedImage(width + 10,height + 10,BufferedImage.TYPE_INT_RGB); // 10是间隔距离
 
-        for (int i = 0; i < scaledImage.getHeight(); i++) {
-            for (int j = 0; j < scaledImage.getWidth(); j++) {
-                if (area.contains(new Point(j + imageLocation.x,i + imageLocation.y))){
-                    screenShotImage.setRGB(j,i,scaledImage.getRGB(j,i));
-                } else screenShotImage.setRGB(j,i,black);
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                if (area.contains(new Point(j + imageLocation.x + coordinate[2],i + imageLocation.y + coordinate[0]))){
+                    screenShotImage.setRGB(j + 5,i + 5,scaledImage.getRGB(j + coordinate[2],i + coordinate[0]));
+                    // 5是间隔距离
+                }
             }
         }
 
@@ -312,6 +324,43 @@ public class IS_View extends JFrame {
         showScreenShotFrame.setLocationRelativeTo(this);
         showScreenShotFrame.setSize(screenShotImage.getWidth()+showScreenShotFrame.getInsets().left+showScreenShotFrame.getInsets().right,
                 screenShotImage.getHeight()+showScreenShotFrame.getInsets().bottom+showScreenShotFrame.getInsets().top);
+    }
+
+    private int[] findCoordinate(Area area){
+        int[] coordinate = new int[4]; // y1 y2 x1 x2
+        // 找y1, y2
+        int hasTrue = 0;
+        for (int i = 0; i < scaledImage.getHeight(); i++) {
+            int trueNum = 0;
+            for (int j = 0; j < scaledImage.getWidth(); j++) {
+                if (area.contains(new Point(j + imageLocation.x,i + imageLocation.y))) {
+                    trueNum++;
+                }
+            }
+            if (trueNum != 0) hasTrue++;
+            if (hasTrue == 1) coordinate[0] = i;
+            if (hasTrue > 0 && trueNum == 0){
+                coordinate[1] = i;
+                break;
+            }
+        }
+        // 找x1, x2
+        hasTrue = 0;
+        for (int i = 0; i < scaledImage.getWidth(); i++) {
+            int trueNum = 0;
+            for (int j = 0; j < scaledImage.getHeight(); j++) {
+                if (area.contains(new Point(i + imageLocation.x,j + imageLocation.y))) {
+                    trueNum++;
+                }
+            }
+            if (trueNum != 0) hasTrue++;
+            if (hasTrue == 1) coordinate[2] = i;
+            if (hasTrue > 0 && trueNum == 0){
+                coordinate[3] = i;
+                break;
+            }
+        }
+        return coordinate;
     }
 //    private void screenShot(){
 //        // TODO 感觉不能用Boolean数组，还得用int数组
